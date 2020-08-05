@@ -1,0 +1,57 @@
+service: centrecom-rss
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ap-southeast-2
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - dynamodb:GetItem
+      - dynamodb:PutItem
+    Resource: 
+      - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:provider.environment.TABLE_NAME}*
+
+plugins:
+  - serverless-dynamodb-local
+  - serverless-offline
+custom:
+  serverless-offline:
+    useChildProcesses: true
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      dbPath: .dynamodb
+      migrate: true
+
+package:
+  exclude:
+    - .dynamodb/**
+
+functions:
+  feed2:
+    handler: feed2.handler
+    events:
+      # - httpApi: 'GET /feed2'
+      - schedule:
+          name: centrecom-crawl2
+          description: '2 Minute Crawl'
+          rate: cron(0/3 22-6 ? * MON-SAT *)
+    memorySize: 192
+
+resources:
+  Resources:
+    DynamoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        BillingMode: 'PAY_PER_REQUEST'
+        AttributeDefinitions:
+          - AttributeName: ${self:provider.environment.PK}
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ${self:provider.environment.PK}
+            KeyType: HASH
+        TableName: ${self:provider.environment.TABLE_NAME}

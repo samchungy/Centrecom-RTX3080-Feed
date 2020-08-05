@@ -1,0 +1,22 @@
+{
+  "name": "centrecom-rtx3080-rss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "feed": "^4.2.1"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.769.0",
+    "serverless-dotenv-plugin": "^3.0.0",
+    "serverless-dynamodb-local": "^0.2.39",
+    "serverless-offline": "^6.5.0"
+  }
+}
