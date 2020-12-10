@@ -1,10 +1,10 @@
-# Serverless AFR RSS Feed
+# Centrecom RTX 3080 Stock Tracker
 
-A simple 30 minute serverless RSS Feed designed to be invoked by Slack's RSS Feed.
+A simple 30 minute serverless scraper to alert us about RTX 3080 stock
 
 ## Description
 
-This bot is designed to scrape Google Web Search results for afr.com articles with the keyword "Deloitte" in the title and return them in a RSS Feed which will be consumed by Slack's Feed app.
+This bot is designed to scrape Centrecom for RTX 3080 stock and post it into a Slack channel.
 
 ## Getting Started
 
@@ -12,14 +12,16 @@ This bot is designed to scrape Google Web Search results for afr.com articles wi
 
 * serverless
 * axios
-* feed
+* cheerio
+* Slack
 
 ### Installing
 
-* Create a [Google Custom Search](https://programmablesearchengine.google.com/), grab it's cx value.
-* Create a [Google API Key](https://console.developers.google.com/apis/credentials) for Custom Search.
-* Create an `.env` file and fill them with `GOOGLE_API_KEY` and `GOOGLE_CUSTOM_SEARCH_CX` environment variables.
+* Create a Slack bot with a webhook URL.
+* Create an `.env` file and fill them with
+    TABLE_NAME=centrecom-products
+    PK=product
+    SLACK_URL=X
 * Run `npm install --prod` to install dependencies.
 * Run `sls offline` to run locally.
 * Run `sls deploy` to deploy to AWS.
-* On Slack run `/feed subscribe {your-app-url}`
