@@ -60,42 +60,37 @@ module.exports.handler = async event => {
   const PRODUCT_PRICE_DIV_CLASS = '.saleprice';
   const PRODUCT_IN_STOCK = '.prbox_green';
 
-  const productsLoad = await db.loadProducts();
-  const products = (productsLoad.Item && productsLoad.Item.items) || [];
-  const productResults = [];
-  const newProducts = [];
-
-
+  const instockProducts = [];
   $(PRODUCT_DIV_CLASS).each((i, e) => {
     const href = e.attribs.href;
     const name = $(e).find(PRODUCT_NAME_DIV_CLASS).text();
     const price = $(e).find(PRODUCT_PRICE_DIV_CLASS).text();
     const instock = $(e).find(PRODUCT_IN_STOCK).text();
     if (href.includes('3080') && instock){
-      const product = products.find(p => p.href === href);
-      if (!product){
-        newProducts.push({
-          url: 'https://www.centrecom.com.au' + e.attribs.href,
-          online: instock.includes('Available online'),
-          name,
-          price
-        })
-      }
-      productResults.push({
-        href,
+      instockProducts.push({
+        url: 'https://www.centrecom.com.au' + href,
+        online: instock.includes('Available online'),
+        name,
+        price,
       });
     }
   });
 
-  
-  await Promise.all(newProducts.map(async (p) => {
-    const stockLocation = p.online ? 'Online' : 'Instore';
-    const text = `${stockLocation}: ${p.name} - ${p.price}` + '\n' + p.url
-    return axios.post(process.env.SLACK_URL, { text });
-  }));
+  if (instockProducts.length) {
+    const productsLoad = await db.loadProducts();
+    const dbProducts = (productsLoad.Item && productsLoad.Item.items) || [];
+    const newProducts = instockProducts.filter(i => !dbProducts.some(p => p.url === i.url))
+ 
+    await Promise.all(newProducts.map(async (p) => {
+      const stockLocation = p.online ? 'Online' : 'Instore';
+      const text = `${stockLocation}: ${p.name} - ${p.price}` + '\n' + p.url
+      return axios.post(process.env.SLACK_URL, { text });
+    }));
 
-  if(products.length !== productResults.length || productResults.some(pr => !products.find(p => pr.href === p.href))){
-    await db.updateProducts(productResults);
+    //Something went out of stock or there was new stock store state to avoid a future notification.
+    if(instockProducts.length !== dbProducts.length || newProducts.length){
+      await db.updateProducts(instockProducts.map(p => ({url: p.url})));
+    }
   }
 
   return {}
