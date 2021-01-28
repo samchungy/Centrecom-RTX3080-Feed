@@ -76,9 +76,10 @@ module.exports.handler = async event => {
     }
   });
 
+  const productsLoad = await db.loadProducts();
+  const dbProducts = (productsLoad.Item && productsLoad.Item.items) || [];
+
   if (instockProducts.length) {
-    const productsLoad = await db.loadProducts();
-    const dbProducts = (productsLoad.Item && productsLoad.Item.items) || [];
     const newProducts = instockProducts.filter(i => !dbProducts.some(p => p.url === i.url))
  
     await Promise.all(newProducts.map(async (p) => {
@@ -90,6 +91,10 @@ module.exports.handler = async event => {
     //Something went out of stock or there was new stock store state to avoid a future notification.
     if(instockProducts.length !== dbProducts.length || newProducts.length){
       await db.updateProducts(instockProducts.map(p => ({url: p.url})));
+    }
+  } else {
+    if (dbProducts.length){
+      await db.updateProducts([]);
     }
   }
 
